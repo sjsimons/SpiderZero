@@ -89,7 +89,16 @@ class SolitaireGame():
                         self.face_up[i][-1] = 1
     
     def eval(self):
-        return 1 if self.completed.item() == 8 else 0
+        score=0
+        for i in range(len(self.stacks)):
+            for j in range(1,len(self.stacks[i])):
+
+                if self.face_up[i][-j] == 1 and self.face_up[i][-j-1] == 1 and self.stacks[i][-j] == self.stacks[i][-j-1] - 1 and self.stacks[i][j] % 13 != 0:
+                    score += 1
+            
+        score += 12*self.completed
+
+        return (score/96)**2
     
     def legal_moves(self):
         moves = []
