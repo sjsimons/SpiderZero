@@ -6,12 +6,13 @@ def main():
 
     # Set the device
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    
+    device = 'cpu'
+
     # Initialize the agent (SpiderSolitaireModel)
-    my_agent = SpiderSolitaireModel(device=device)
+    my_agent = SpiderSolitaireModel(num_stacks=5,device=device)
     
     # Create the environment
-    env = Environment(device=device)
+    env = Environment(num_stacks=5,device=device)
     env.reset()
     
     # Initialize the replay buffer

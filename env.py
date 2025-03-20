@@ -1,9 +1,9 @@
 import torch
 class SolitaireGame():
-    def __init__(self,num_stacks=10,num_decks=2,device='cpu'):
+    def __init__(self,num_stacks=10,device='cpu'):
 
         self.num_stacks = num_stacks
-        self.num_decks = num_decks
+        self.num_decks = int(num_stacks/5)
         self.num_moves = num_stacks*num_stacks+1
         self.backups = torch.as_tensor([0],dtype=torch.int,device=device)
         self.completed = torch.tensor([0],dtype=torch.int,device=device)
@@ -15,7 +15,7 @@ class SolitaireGame():
         self.face_up = [torch.tensor([],dtype=torch.int,device=device) for _ in range(num_stacks)]
         # list of tensors for storing backup cards
         self.backup_stacks = [torch.tensor([],dtype=torch.int,device=device) for _ in range(num_stacks)]
-  
+
     
     def reset(self):
         deck = torch.arange(1, 52+1).repeat(self.num_decks).to(device=self.device,dtype=torch.int)
@@ -136,7 +136,7 @@ class SolitaireGame():
         
         # if there are backup cards remaining and all stacks have at least one card then the stock can be dealt
         if self.backups > 0 & sum([1 for stack in self.stacks if stack.shape[0] == 0]) == 0:
-            moves.append(100)
+            moves.append(self.num_moves-1)
 
         return moves
     
@@ -165,8 +165,8 @@ class SolitaireGame():
 
 
 class Environment():
-    def __init__(self, num_stacks=10, num_decks=2, device='cpu'):
-        self.game = SolitaireGame(num_stacks, num_decks, device)
+    def __init__(self, num_stacks=10, device='cpu'):
+        self.game = SolitaireGame(num_stacks, device)
         self.device = device
 
     def reset(self):
@@ -188,7 +188,7 @@ class Environment():
         return stacks, global_features
 
     def step(self, action):
-        if action == 100:
+        if action == self.game.num_moves-1:
             self.game.backup()
         else:
             # Move card(s) from source stack to target stack

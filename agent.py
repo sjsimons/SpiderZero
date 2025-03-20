@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils import positional_encoding
 import random
+import sys
 
 class StackTransformer(nn.Module):
     def __init__(self, embed_dim=128, num_heads=4, num_layers=4, num_cards=54, padding_idx = 0, device='cpu'):
@@ -50,7 +51,7 @@ class StackTransformer(nn.Module):
 
 class SpiderSolitaireModel(nn.Module):
     """Full model with shared Transformer and policy/value heads."""
-    def __init__(self, num_stacks=10, embed_dim=64, num_heads=2, num_layers=2, num_moves=101, device='cpu'):
+    def __init__(self, num_stacks=10, embed_dim=64, num_heads=2, num_layers=2, device='cpu'):
         super().__init__()
         self.stack_transformer = StackTransformer(embed_dim, num_heads, num_layers, device=device)
         self.to(device)
@@ -64,7 +65,7 @@ class SpiderSolitaireModel(nn.Module):
         ).to(device)
 
         # Policy head (move selection)
-        self.policy_head = nn.Linear(128, num_moves).to(device)
+        self.policy_head = nn.Linear(128,(num_stacks**2)+1).to(device)
 
         # Value head (game outcome)
         self.value_head = nn.Linear(128, 1).to(device)
@@ -124,6 +125,15 @@ class Buffer:
         def clear(self):
             self.memory = []
             self.position = 0
+        
+        def total_space_used(self):
+            total = sys.getsizeof(self.memory)
+            for transition in self.memory:
+                total += sys.getsizeof(transition)
+                if isinstance(transition, tuple):
+                    for field in transition:
+                        total += sys.getsizeof(field)
+            return total
 
         def __len__(self):
             return len(self.memory)
